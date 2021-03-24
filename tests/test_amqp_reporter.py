@@ -23,7 +23,7 @@ class SMTPMessage(NamedTuple):
 def queue_consumer(queue: Queue):
     while True:
         try:
-            yield queue.get(timeout=2)
+            yield queue.get(timeout=5)
         except Empty:
             break
 
@@ -33,7 +33,7 @@ def smtp_messages():
     message_q: Queue = Queue()
 
     class SMTPHandler:
-        async def handle_DATA(self, server, session, envelope):
+        async def handle_DATA(self, _server, session, envelope):
             peer = session.peer
             mail_from = envelope.mail_from
             rcpt_tos = envelope.rcpt_tos
@@ -79,7 +79,7 @@ def program_out_es():
         yield queue_gen
     finally:
         sub_p.terminate()
-        reader_t.join(2)
+        reader_t.join(5)
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ def program_out_smtp():
         yield queue_gen
     finally:
         sub_p.terminate()
-        reader_t.join(2)
+        reader_t.join(5)
 
 
 @pytest.fixture
@@ -157,14 +157,13 @@ def test_consume_and_sendmail_success(amqp_publish, smtp_messages, program_out_s
             break
     else:
         assert False, "Reached end of output without acking the message"
-    mailbox = list(smtp_messages)
-    assert len(mailbox) == 1
-    received_smtp = mailbox[0]
-    received_email = EmailParser(policy=default_policy).parsebytes(received_smtp.message)
-    assert received_smtp.sender == message['from']
-    assert received_email['from'] == message['from']
-    assert received_smtp.receivers == message['to']
-    assert received_email['to'] == ', '.join(message['to'])
-    assert received_smtp.remote_host[0] == '127.0.0.1'
-    assert received_email['subject'] == message['subject']
-    assert received_email.get_content().strip() == message['body']
+    for received_smtp in smtp_messages:
+        received_email = EmailParser(policy=default_policy).parsebytes(received_smtp.message)
+        assert received_smtp.sender == message['from']
+        assert received_email['from'] == message['from']
+        assert received_smtp.receivers == message['to']
+        assert received_email['to'] == ', '.join(message['to'])
+        assert received_smtp.remote_host[0] == '127.0.0.1'
+        assert received_email['subject'] == message['subject']
+        assert received_email.get_content().strip() == message['body']
+        break

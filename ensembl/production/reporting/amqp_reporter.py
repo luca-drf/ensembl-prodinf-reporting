@@ -58,7 +58,7 @@ def es_reporter():
         es.close()
 
 
-def compose_email(email: dict):
+def compose_email(email: dict) -> EmailMessage:
     msg = EmailMessage()
     msg['Subject'] = email['subject']
     msg['From'] = email['from']
