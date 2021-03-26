@@ -7,14 +7,22 @@ import os
 from queue import Queue, Empty
 from subprocess import Popen, PIPE
 from typing import BinaryIO, NamedTuple, List, Tuple
+
 from aiosmtpd.controller import Controller as SMTPController
-import pytest
-import kombu
 from elasticsearch import Elasticsearch
+import kombu
+import urllib3
+
+import pytest
+
+
+class HostPort(NamedTuple):
+    host: str
+    port: int
 
 
 class SMTPMessage(NamedTuple):
-    remote_host: Tuple[str, int]
+    remote_host: HostPort
     sender: str
     receivers: List[str]
     message: str
@@ -26,6 +34,13 @@ def queue_consumer(queue: Queue):
             yield queue.get(timeout=5)
         except Empty:
             break
+
+
+def wait_for(url: str, retries: int = 8, backoff: float = 0.2):
+    retry = urllib3.Retry(total=retries, backoff_factor=backoff,
+                          status_forcelist=[404, 500, 502, 503, 504])
+    manager = urllib3.PoolManager(retries=retry)
+    manager.request('GET', url)
 
 
 @pytest.fixture
@@ -71,7 +86,7 @@ def make_program(extra_env: dict) -> Tuple[Popen, Thread, Queue]:
 @pytest.fixture
 def program_out_es():
     extra_env = {
-        'REPORTER_TYPE': 'elasticsearch'
+        'REPORTER_TYPE': 'elasticsearch',
     }
     sub_p, reader_t, queue_gen = make_program(extra_env)
     reader_t.start()
@@ -99,7 +114,8 @@ def program_out_smtp():
 
 @pytest.fixture
 def amqp_publish():
-    connection = kombu.Connection('amqp://guest:guest@localhost:5672//')
+    wait_for("http://localhost:15672/")
+    connection = kombu.Connection("amqp://guest:guest@localhost:5672//")
     exchange = kombu.Exchange('test_exchange', type='topic')
     queue = kombu.Queue('test_queue', exchange)
     producer = connection.Producer()
@@ -116,6 +132,7 @@ def amqp_publish():
 
 @pytest.fixture
 def elastic_search():
+    wait_for("http://localhost:9200/")
     es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
     def search(body: dict) -> None:
