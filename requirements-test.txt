@@ -35,6 +35,8 @@ pytest==6.2.2
 toml==0.10.2
     # via pytest
 urllib3==1.26.4
-    # via elasticsearch
+    # via
+    #   -r requirements-test.in
+    #   elasticsearch
 vine==5.0.0
     # via amqp

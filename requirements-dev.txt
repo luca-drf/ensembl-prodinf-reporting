@@ -81,7 +81,9 @@ typed-ast==1.4.2
 typing-extensions==3.7.4.3
     # via mypy
 urllib3==1.26.4
-    # via elasticsearch
+    # via
+    #   -r requirements-test.in
+    #   elasticsearch
 vine==5.0.0
     # via amqp
 wcwidth==0.2.5
