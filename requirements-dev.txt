@@ -22,6 +22,8 @@ backcall==0.2.0
     # via ipython
 certifi==2020.12.5
     # via elasticsearch
+coverage==5.5
+    # via -r requirements-test.in
 decorator==4.4.2
     # via ipython
 elasticsearch==7.12.0

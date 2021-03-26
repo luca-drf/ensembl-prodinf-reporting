@@ -16,6 +16,8 @@ attrs==20.3.0
     #   pytest
 certifi==2020.12.5
     # via elasticsearch
+coverage==5.5
+    # via -r requirements-test.in
 elasticsearch==7.12.0
     # via -r requirements.in
 iniconfig==1.1.1
