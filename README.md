@@ -1,8 +1,8 @@
-Ensembl-Prodinf-Reporting
-=========================
+EnsEMBL - Production Reporting Applications
+===========================================
 
 This repository contains Python applications used for reporting status and
-outcomes of Ensembl Production Pipelines and other Production services.
+outcomes of EnsEMBL Production Pipelines and other internal Production services.
 
 
 AMQP Reporter
