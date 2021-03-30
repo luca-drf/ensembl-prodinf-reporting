@@ -1,0 +1,4 @@
+aiosmtpd
+coverage
+pytest
+urllib3
