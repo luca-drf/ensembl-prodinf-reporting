@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
-amqp==5.0.5
+amqp==5.0.6
     # via kombu
 certifi==2020.12.5
     # via elasticsearch

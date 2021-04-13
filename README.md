@@ -12,7 +12,7 @@ Python AMQP consumer designed to consume JSON messages from a RabbitMQ queue and
 either store them in a Elasticsearch instance or sent via email.
 
 
-### Requirements
+### System Requirements
 
 - Python 3.8+
 - Elasticsearch 7.12
@@ -54,4 +54,22 @@ AMQP Reporter runs in the foreground and can be started with the command:
 ```
 python ensembl/production/reporting/amqp_reporter.py
 ```
+Or by running a Docker container (see `Dockerfile`)
 
+
+
+### Testing
+
+Integration tests are implemented using Docker Compose and Pytest. Please refer
+to `.travis.yml` for more insight on tests configuration.
+
+In order to run tests manually, run the following commands:
+```
+pip install -r requirements-test.txt
+pip install .
+docker-compose -f tests/docker-compose.yml up -d
+pytest tests
+```
+
+Please wait for Docker Compose to finish building the images on the first run
+before running the tests with Pytest.
