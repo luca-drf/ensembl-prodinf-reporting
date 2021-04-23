@@ -3,12 +3,10 @@ python:
   - "3.8"
 
 services:
-  # - docker
-  - rabbitmq:3-management
-  - elasticsearch:7.12.0
+  - docker
 
 before_script:
-  # - docker-compose -f tests/docker-compose.yml up -d
+  - docker-compose -f tests/docker-compose.yml up -d
   - pip install -r requirements-test.txt
   - pip install .
 
