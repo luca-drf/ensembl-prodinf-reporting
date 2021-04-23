@@ -15,6 +15,12 @@ import urllib3
 
 import pytest
 
+from ensembl.production.reporting.config import config
+
+
+SMTP_HOST = '127.0.0.1'
+SMTP_PORT = 10025
+
 
 class HostPort(NamedTuple):
     host: str
@@ -57,7 +63,7 @@ def smtp_messages():
             message_q.put(msg)
             return '250 OK'
 
-    controller = SMTPController(SMTPHandler(), hostname='127.0.0.1', port=10025)
+    controller = SMTPController(SMTPHandler(), hostname=SMTP_HOST, port=SMTP_PORT)
     controller.start()
     try:
         yield queue_consumer(message_q)
@@ -101,7 +107,7 @@ def program_out_es():
 def program_out_smtp():
     extra_env = {
         'REPORTER_TYPE': 'email',
-        'SMTP_PORT': '10025'
+        'SMTP_PORT': str(SMTP_PORT)
     }
     sub_p, reader_t, queue_gen = make_program(extra_env)
     reader_t.start()
@@ -114,8 +120,10 @@ def program_out_smtp():
 
 @pytest.fixture
 def amqp_publish():
-    wait_for("http://localhost:15672/")
-    connection = kombu.Connection("amqp://guest:guest@localhost:5672//")
+    wait_for(f"http://{config.amqp_host}:{config.amqp_port}/")
+    connection = kombu.Connection(
+        f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
+    )
     exchange = kombu.Exchange('test_exchange', type='topic')
     queue = kombu.Queue('test_queue', exchange)
     producer = connection.Producer()
@@ -132,8 +140,8 @@ def amqp_publish():
 
 @pytest.fixture
 def elastic_search():
-    wait_for("http://localhost:9200/")
-    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    wait_for(f"http://{config.es_host}:{config.es_port}/")
+    es = Elasticsearch([{"host": config.es_host, "port": config.es_port}])
 
     def search(body: dict) -> None:
         es.indices.flush()
@@ -180,7 +188,7 @@ def test_consume_and_sendmail_success(amqp_publish, smtp_messages, program_out_s
         assert received_email['from'] == message['from']
         assert received_smtp.receivers == message['to']
         assert received_email['to'] == ', '.join(message['to'])
-        assert received_smtp.remote_host[0] == '127.0.0.1'
+        assert received_smtp.remote_host[0] == SMTP_HOST
         assert received_email['subject'] == message['subject']
         assert received_email.get_content().strip() == message['body']
         break

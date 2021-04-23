@@ -14,16 +14,16 @@ test:
     # Elasticsearch service variables
     ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     # Reporter config variables
-    ES_HOST: elasticsearch
-    AMQP_HOST: rabbitmq
+    ES_HOST: elasticsearch-test
+    AMQP_HOST: rabbitmq-test
 
   image: python:3.8.9-slim
 
   services:
     - name: rabbitmq:3-management
-      alias: rabbitmq
+      alias: rabbitmq-test
     - name: elasticsearch:7.12.0
-      alias: elasticsearch
+      alias: elasticsearch-test
       command: ["bin/elasticsearch", "-Ediscovery.type=single-node"]
 
   cache:
