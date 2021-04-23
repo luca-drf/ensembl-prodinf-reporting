@@ -13,13 +13,15 @@ test:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
     # Elasticsearch service variables
     ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-    discovery.type: single-node
 
   image: python:3.8.9-slim
 
   services:
-    - rabbitmq:3-management
-    - elasticsearch:7.12.0
+    - name: rabbitmq:3-management
+      alias: rabbitmq
+    - name: elasticsearch:7.12.0
+      alias: elasticsearch
+      command: ["bin/elasticsearch", "-Ediscovery.type=single-node"]
 
   cache:
     paths:
