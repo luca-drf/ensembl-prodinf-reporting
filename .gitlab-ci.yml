@@ -29,6 +29,7 @@ test:
   cache:
     paths:
       - .cache/pip
+      - venv/
 
   # Pip's cache doesn't store the python packages
   # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -38,6 +39,9 @@ test:
 
   before_script:
     - python -V  # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
     - pip install -r requirements-test.txt
     - pip install .
 
