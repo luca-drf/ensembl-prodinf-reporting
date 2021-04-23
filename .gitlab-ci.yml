@@ -37,12 +37,7 @@ test:
   # them in a virtualenv and cache it as well.
 
   before_script:
-    # - apk update && apk add docker docker-compose
-    # - docker-compose -f tests/docker-compose.yml up -d
     - python -V  # Print out python version for debugging
-    # - pip install virtualenv
-    # - virtualenv venv
-    # - source venv/bin/activate
     - pip install -r requirements-test.txt
     - pip install .
 
