@@ -22,7 +22,9 @@ logger = logging.getLogger("amqp_reporter")
 
 
 queue = Queue(config.amqp_queue)
-conn = Connection(config.amqp_uri)
+conn = Connection(
+    f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
+)
 hub = Hub()
 
 
@@ -113,7 +115,7 @@ def sigterm_handler(_signum, _frame):
     hub.stop()
 
 
-if __name__ == "__main__":
+def main():
     signal.signal(signal.SIGINT, sigint_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
     conn.register_with_event_loop(hub)
@@ -132,3 +134,7 @@ if __name__ == "__main__":
         ):
             logger.info("Starting main loop")
             hub.run_forever()
+
+
+if __name__ == "__main__":
+    main()

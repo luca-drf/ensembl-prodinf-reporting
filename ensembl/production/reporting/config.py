@@ -10,7 +10,11 @@ def parse_debug_var(var: str):
 class Config(NamedTuple):
     debug: bool
     reporter_type: str
-    amqp_uri: str
+    amqp_host: str
+    amqp_port: int
+    amqp_user: str
+    amqp_pass: str
+    amqp_virtual_host: str
     amqp_queue: str
     amqp_prefetch: int
     es_host: str
@@ -35,7 +39,11 @@ config = Config(
     reporter_type=os.getenv(
         "REPORTER_TYPE", file_config.get("reporter_type", "elasticsearch")
     ),
-    amqp_uri=os.getenv("AMQP_URI", file_config.get("amqp_uri", "amqp://")),
+    amqp_host=os.getenv("AMQP_HOST", file_config.get("amqp_host", "localhost")),
+    amqp_port=int(os.getenv("AMQP_PORT", file_config.get("amqp_port", "5672"))),
+    amqp_user=os.getenv("AMQP_USER", file_config.get("amqp_user", "guest")),
+    amqp_pass=os.getenv("AMQP_PASS", file_config.get("amqp_pass", "guest")),
+    amqp_virtual_host=os.getenv("AMQP_VIRTUAL_HOST", file_config.get("amqp_virtual_host", "/")),
     amqp_queue=os.getenv("AMQP_QUEUE", file_config.get("amqp_queue", "test")),
     amqp_prefetch=int(
         os.getenv("AMQP_PREFETCH_COUNT", file_config.get("amqp_prefetch_count"))
