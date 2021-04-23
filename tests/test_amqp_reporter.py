@@ -20,6 +20,7 @@ from ensembl.production.reporting.config import config
 
 SMTP_HOST = '127.0.0.1'
 SMTP_PORT = 10025
+AMQP_MANAGEMENT_PORT = 15672
 
 
 class HostPort(NamedTuple):
@@ -120,7 +121,7 @@ def program_out_smtp():
 
 @pytest.fixture
 def amqp_publish():
-    wait_for(f"http://{config.amqp_host}:{config.amqp_port}/")
+    wait_for(f"http://{config.amqp_host}:{AMQP_MANAGEMENT_PORT}/")
     connection = kombu.Connection(
         f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
     )
