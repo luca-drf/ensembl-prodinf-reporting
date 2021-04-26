@@ -51,6 +51,41 @@ def wait_for(url: str, retries: int = 8, backoff: float = 0.2):
 
 
 @pytest.fixture
+def amqp_publish():
+    wait_for(f"http://{config.amqp_host}:{AMQP_MANAGEMENT_PORT}/")
+    connection = kombu.Connection(
+        f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
+    )
+    exchange = kombu.Exchange('test_exchange', type='topic')
+    queue = kombu.Queue('test_queue', exchange)
+    producer = connection.Producer()
+
+    def publisher(message: dict) -> None:
+        producer.publish(message,
+                         exchange=exchange,
+                         declare=[queue],
+                         retry=True,
+                         serializer='json',
+                         delivery_mode=2)
+    return publisher
+
+
+@pytest.fixture
+def elastic_search():
+    wait_for(f"http://{config.es_host}:{config.es_port}/")
+    es = Elasticsearch([{"host": config.es_host, "port": config.es_port}])
+
+    def search(body: dict) -> None:
+        es.indices.flush()
+        es.indices.refresh()
+        return es.search(index='test', body=body)
+
+    yield search
+    if es.indices.exists('test'):
+        es.indices.delete('test')
+
+
+@pytest.fixture
 def smtp_messages():
     message_q: Queue = Queue()
 
@@ -91,7 +126,7 @@ def make_program(extra_env: dict) -> Tuple[Popen, Thread, Queue]:
 
 
 @pytest.fixture
-def program_out_es():
+def program_out_es(elastic_search):
     extra_env = {
         'REPORTER_TYPE': 'elasticsearch',
     }
@@ -119,41 +154,45 @@ def program_out_smtp():
         reader_t.join(5)
 
 
-@pytest.fixture
-def amqp_publish():
-    wait_for(f"http://{config.amqp_host}:{AMQP_MANAGEMENT_PORT}/")
-    connection = kombu.Connection(
-        f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
-    )
-    exchange = kombu.Exchange('test_exchange', type='topic')
-    queue = kombu.Queue('test_queue', exchange)
-    producer = connection.Producer()
-
-    def publisher(message: dict) -> None:
-        producer.publish(message,
-                         exchange=exchange,
-                         declare=[queue],
-                         retry=True,
-                         serializer='json',
-                         delivery_mode=2)
-    return publisher
-
-
-@pytest.fixture
-def elastic_search():
-    wait_for(f"http://{config.es_host}:{config.es_port}/")
-    es = Elasticsearch([{"host": config.es_host, "port": config.es_port}])
-
-    def search(body: dict) -> None:
-        es.indices.flush()
-        es.indices.refresh()
-        return es.search(index='test', body=body)
-
-    yield search
-    es.indices.delete('test')
-
-
 def test_consume_and_es_post_success(amqp_publish, elastic_search, program_out_es):
+    message = {'message': 'hello!'}
+    amqp_publish(message)
+    for line in program_out_es:
+        if "Acked:" in line:
+            break
+    else:
+        assert False, "Reached end of output without acking the message"
+    res = elastic_search({"query": {
+                             "query_string": {
+                                 "query": "message:\"hello!\""
+                             }
+                         }})
+    first_res = res['hits']['hits'][0]
+    assert first_res['_source'] == message
+
+
+def test_consume_and_reject(amqp_publish, program_out_es):
+    message = "Invalid Message"
+    amqp_publish(message)
+    for line in program_out_es:
+        if "Acked:" in line:
+            assert False, "Should not have acked the message!"
+        if "Rejected:" in line:
+            break
+    else:
+        assert False, "Reached end of output without acking the message"
+
+
+def test_consume_and_es_post_after_reject(amqp_publish, elastic_search, program_out_es):
+    message = "Invalid Message"
+    amqp_publish(message)
+    for line in program_out_es:
+        if "Acked:" in line:
+            assert False, "Should not have acked the message!"
+        if "Rejected:" in line:
+            break
+    else:
+        assert False, "Reached end of output without acking the message"
     message = {'message': 'hello!'}
     amqp_publish(message)
     for line in program_out_es:

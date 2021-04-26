@@ -5,16 +5,19 @@ import json
 import signal
 from smtplib import SMTP, SMTPException
 import sys
+from typing import Any
+
 from kombu import Connection, Queue, Producer, Consumer, Message
 from kombu.asynchronous import Hub
 from elasticsearch import Elasticsearch, ElasticsearchException
+
 from ensembl.production.reporting.config import config
 
 
 LOG_LEVEL = logging.DEBUG if config.debug else logging.INFO
 logging.basicConfig(
     stream=sys.stdout,
-    format="%(asctime)s %(levelname)-8s %(name)-15s --: %(message)s",
+    format="%(asctime)s %(levelname)-8s %(name)-15s: %(message)s",
     level=LOG_LEVEL,
 )
 
@@ -28,6 +31,20 @@ conn = Connection(
 hub = Hub()
 
 
+def validate_payload(message_body: Any) -> dict:
+    try:
+        payload = json.loads(message_body)
+    except json.JSONDecodeError as err:
+        msg = f"Cannot decode JSON message. {err} in message: {message_body}"
+        logger.critical(msg)
+        raise ValueError(msg) from err
+    if not isinstance(payload, dict):
+        msg = "Invalid message type: JSON message must be of type 'object'"
+        logger.critical(msg)
+        raise ValueError(msg)
+    return payload
+
+
 @contextmanager
 def es_reporter():
     es = Elasticsearch([{"host": config.es_host, "port": config.es_port}])
@@ -35,9 +52,8 @@ def es_reporter():
     def on_message(message: Message):
         logger.debug("From queue: %s, received: %s", config.amqp_queue, message.body)
         try:
-            json.loads(message.body)
-        except json.JSONDecodeError as err:
-            logger.critical("Cannot decode JSON message: %s", message.body)
+            validate_payload(message.body)
+        except ValueError as err:
             message.reject()
             logger.debug("Rejected: %s", message.body)
             return
@@ -81,9 +97,8 @@ def smtp_reporter():
     def on_message(message: Message):
         logger.debug("From queue: %s, received: %s", config.amqp_queue, message.body)
         try:
-            email = json.loads(message.body)
-        except json.JSONDecodeError as err:
-            logger.critical("Cannot decode JSON message: %s", message.body)
+            email = validate_payload(message.body)
+        except ValueError as err:
             message.reject()
             logger.debug("Rejected: %s", message.body)
             return
