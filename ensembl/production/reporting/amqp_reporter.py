@@ -123,22 +123,30 @@ def smtp_reporter():
         smtp.quit()
 
 
-def sigint_handler(_signum, _frame):
-    logger.info("Received SIGINT. Terminating.")
+def stop_gracefully():
     hub.close()
     hub.stop()
+
+
+def sigint_handler(_signum, _frame):
+    logger.info("Received SIGINT. Terminating.")
+    stop_gracefully()
 
 
 def sigterm_handler(_signum, _frame):
     logger.info("Received SIGTERM. Terminating.")
-    hub.close()
-    hub.stop()
+    stop_gracefully()
+
+
+def release_connection(_hub):
+    conn.release()
 
 
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
     conn.register_with_event_loop(hub)
+    hub.on_close.add(release_connection)
 
     logger.info("Configuration: %s", config)
     if config.reporter_type == "elasticsearch":
