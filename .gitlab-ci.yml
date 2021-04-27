@@ -43,7 +43,7 @@ test:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements-test.txt
-    - pip install .
+    - pip install --no-cache-dir .
 
   script:
     - coverage run -m pytest tests
