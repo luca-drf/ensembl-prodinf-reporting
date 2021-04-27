@@ -109,7 +109,7 @@ def smtp_reporter():
         try:
             smtp.send_message(msg)
         except SMTPException as err:
-            logger.error("Unable to send email message: %s", email)
+            logger.error("Unable to send email message. %s Message: %s", err, email)
             message.requeue()
             logger.warning("Requeued: %s", message.body)
             return
@@ -125,11 +125,13 @@ def smtp_reporter():
 
 def sigint_handler(_signum, _frame):
     logger.info("Received SIGINT. Terminating.")
+    hub.close()
     hub.stop()
 
 
 def sigterm_handler(_signum, _frame):
     logger.info("Received SIGTERM. Terminating.")
+    hub.close()
     hub.stop()
 
 
