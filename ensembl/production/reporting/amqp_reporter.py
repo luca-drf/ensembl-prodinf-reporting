@@ -35,12 +35,10 @@ def validate_payload(message_body: Any) -> dict:
     try:
         payload = json.loads(message_body)
     except json.JSONDecodeError as err:
-        msg = f"Cannot decode JSON message. {err} in message: {message_body}"
-        logger.critical(msg)
+        msg = f"Cannot decode JSON message. {err}."
         raise ValueError(msg) from err
     if not isinstance(payload, dict):
-        msg = "Invalid message type: JSON message must be of type 'object'"
-        logger.critical(msg)
+        msg = f"Invalid message type: JSON message must be of type 'object'."
         raise ValueError(msg)
     return payload
 
@@ -54,17 +52,18 @@ def es_reporter():
         try:
             validate_payload(message.body)
         except ValueError as err:
+            logger.error("%s Message: %s", err, message.body)
             message.reject()
-            logger.debug("Rejected: %s", message.body)
+            logger.warning("Rejected: %s", message.body)
             return
         try:
             es.index(
                 index=config.es_index, body=message.body, doc_type=config.es_doc_type
             )
         except ElasticsearchException as err:
-            logger.critical("Cannot modify index %s. Error: %s", config.es_index, err)
+            logger.error("Cannot modify index %s. Error: %s", config.es_index, err)
             message.requeue()
-            logger.debug("Requeued: %s", message.body)
+            logger.warning("Requeued: %s", message.body)
             return
         logger.debug(
             "To index: %s, type: %s, document: %s",
@@ -83,10 +82,13 @@ def es_reporter():
 
 def compose_email(email: dict) -> EmailMessage:
     msg = EmailMessage()
-    msg["Subject"] = email["subject"]
-    msg["From"] = email["from"]
-    msg["To"] = email["to"]  # This can be a list of str
-    msg.set_content(email["body"])
+    try:
+        msg["Subject"] = email["subject"]
+        msg["From"] = email["from"]
+        msg["To"] = email["to"]  # This can be a list of str
+        msg.set_content(email["content"])
+    except KeyError as err:
+        raise ValueError(f"Cannot parse message. Invalid key: {err}.")
     return msg
 
 
@@ -98,19 +100,20 @@ def smtp_reporter():
         logger.debug("From queue: %s, received: %s", config.amqp_queue, message.body)
         try:
             email = validate_payload(message.body)
+            msg = compose_email(email)
         except ValueError as err:
+            logger.error("%s Email Message: %s", err, email)
             message.reject()
-            logger.debug("Rejected: %s", message.body)
+            logger.error("Rejected: %s", message.body)
             return
-        msg = compose_email(email)
         try:
             smtp.send_message(msg)
         except SMTPException as err:
-            logger.critical("Unable to send email message: %s", message.body)
+            logger.error("Unable to send email message: %s", email)
             message.requeue()
-            logger.debug("Requeued: %s", message.body)
+            logger.warning("Requeued: %s", message.body)
             return
-        logger.debug("Email sent: %s", message.body)
+        logger.debug("Email sent: %s", email)
         message.ack()
         logger.debug("Acked: %s", message.body)
 
