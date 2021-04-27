@@ -104,7 +104,7 @@ def smtp_reporter():
         except ValueError as err:
             logger.error("%s Email Message: %s", err, email)
             message.reject()
-            logger.error("Rejected: %s", message.body)
+            logger.warning("Rejected: %s", message.body)
             return
         try:
             smtp.send_message(msg)
