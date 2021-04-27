@@ -43,7 +43,9 @@ config = Config(
     amqp_port=int(os.getenv("AMQP_PORT", file_config.get("amqp_port", "5672"))),
     amqp_user=os.getenv("AMQP_USER", file_config.get("amqp_user", "guest")),
     amqp_pass=os.getenv("AMQP_PASS", file_config.get("amqp_pass", "guest")),
-    amqp_virtual_host=os.getenv("AMQP_VIRTUAL_HOST", file_config.get("amqp_virtual_host", "/")),
+    amqp_virtual_host=os.getenv(
+        "AMQP_VIRTUAL_HOST", file_config.get("amqp_virtual_host", "/")
+    ),
     amqp_queue=os.getenv("AMQP_QUEUE", file_config.get("amqp_queue", "test")),
     amqp_prefetch=int(
         os.getenv("AMQP_PREFETCH_COUNT", file_config.get("amqp_prefetch_count"))
