@@ -12,7 +12,6 @@ ENV PYTHONUNBUFFERED 1
 COPY . /usr/src/app/
 
 # install python packages
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["python", "ensembl/production/reporting/amqp_reporter.py"]
