@@ -17,10 +17,12 @@ import pytest
 
 from ensembl.production.reporting.config import config
 from ensembl.production.reporting.amqp_reporter import validate_payload, compose_email
+from ensembl.production.reporting.amqp_reporter import AMQP_URI
 
 
-SMTP_HOST = "127.0.0.1"
-SMTP_PORT = 10025
+SMTP_TEST_SERVER_HOST = "127.0.0.1"
+SMTP_TEST_SERVER_PORT = 10025
+
 AMQP_MANAGEMENT_PORT = 15672
 
 
@@ -68,9 +70,7 @@ def valid_email_message():
 @pytest.fixture
 def amqp_publish():
     wait_for(f"http://{config.amqp_host}:{AMQP_MANAGEMENT_PORT}/")
-    connection = kombu.Connection(
-        f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
-    )
+    connection = kombu.Connection(AMQP_URI)
     queue = connection.SimpleQueue("test_queue")
 
     def publisher(message: dict) -> None:
@@ -114,7 +114,9 @@ def smtp_messages():
             message_q.put(msg)
             return "250 OK"
 
-    controller = SMTPController(SMTPHandler(), hostname=SMTP_HOST, port=SMTP_PORT)
+    controller = SMTPController(
+        SMTPHandler(), hostname=SMTP_TEST_SERVER_HOST, port=SMTP_TEST_SERVER_PORT
+    )
     controller.start()
     try:
         yield queue_consumer(message_q)
@@ -156,7 +158,10 @@ def program_out_es(elastic_search):
 
 @pytest.fixture
 def program_out_smtp():
-    extra_env = {"REPORTER_TYPE": "email", "SMTP_PORT": str(SMTP_PORT)}
+    extra_env = {
+        "REPORTER_TYPE": "email",
+        "SMTP_PORT": str(SMTP_TEST_SERVER_PORT)
+    }
     sub_p, reader_t, queue_gen = make_program(extra_env)
     reader_t.start()
     try:
@@ -270,7 +275,7 @@ def test_consume_and_sendmail_success(
         assert received_email["from"] == message["from"]
         assert received_smtp.receivers == message["to"]
         assert received_email["to"] == ", ".join(message["to"])
-        assert received_smtp.remote_host[0] == SMTP_HOST
+        assert received_smtp.remote_host[0] == SMTP_TEST_SERVER_HOST
         assert received_email["subject"] == message["subject"]
         assert received_email.get_content().strip() == message["content"]
         break
