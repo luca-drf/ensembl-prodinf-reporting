@@ -25,9 +25,8 @@ logger = logging.getLogger("amqp_reporter")
 
 
 queue = Queue(config.amqp_queue)
-conn = Connection(
-    f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
-)
+AMQP_URI = f"amqp://{config.amqp_user}:{config.amqp_pass}@{config.amqp_host}:{config.amqp_port}/{config.amqp_virtual_host}"
+conn = Connection(AMQP_URI)
 hub = Hub()
 
 
@@ -46,6 +45,12 @@ def validate_payload(message_body: Any) -> dict:
 @contextmanager
 def es_reporter():
     es = Elasticsearch([{"host": config.es_host, "port": config.es_port}])
+    if not es.ping():
+        logger.error(
+            "Cannot connect to Elasticsearch server. Host: %s, Port: %s",
+            config.es_host,
+            config.es_port,
+        )
 
     def on_message(message: Message):
         logger.debug("From queue: %s, received: %s", config.amqp_queue, message.body)
@@ -94,7 +99,16 @@ def compose_email(email: dict) -> EmailMessage:
 
 @contextmanager
 def smtp_reporter():
-    smtp = SMTP(host=config.smtp_host, port=config.smtp_port)
+    try:
+        with SMTP(host=config.smtp_host, port=config.smtp_port) as smtp:
+            smtp.noop()
+    except (ConnectionRefusedError, SMTPException) as err:
+        logger.error(
+            "Cannot connect to SMTP server: %s Host: %s, Port: %s",
+            err,
+            config.smtp_host,
+            config.smtp_port,
+        )
 
     def on_message(message: Message):
         logger.debug("From queue: %s, received: %s", config.amqp_queue, message.body)
@@ -107,9 +121,10 @@ def smtp_reporter():
             logger.warning("Rejected: %s", message.body)
             return
         try:
-            smtp.send_message(msg)
+            with SMTP(host=config.smtp_host, port=config.smtp_port) as smtp:
+                smtp.send_message(msg)
         except SMTPException as err:
-            logger.error("Unable to send email message. %s Message: %s", err, email)
+            logger.error("Cannot send email message: %s Message: %s", err, email)
             message.requeue()
             logger.warning("Requeued: %s", message.body)
             return
@@ -117,10 +132,7 @@ def smtp_reporter():
         message.ack()
         logger.debug("Acked: %s", message.body)
 
-    try:
-        yield on_message
-    finally:
-        smtp.quit()
+    yield on_message
 
 
 def stop_gracefully():
@@ -145,7 +157,12 @@ def release_connection(_hub):
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
-    conn.register_with_event_loop(hub)
+    try:
+        conn.register_with_event_loop(hub)
+    except ConnectionRefusedError as err:
+        logger.critical("Cannot connect to %s", AMQP_URI)
+        logger.critical("Exiting.")
+        sys.exit(1)
     hub.on_close.add(release_connection)
 
     logger.info("Configuration: %s", config)
