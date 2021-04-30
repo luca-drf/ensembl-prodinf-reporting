@@ -1,0 +1,38 @@
+version: "3.2"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - shared_net
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    networks:
+      - shared_net
+  amqp_reporter:
+    image: amqp_reporter
+    build: .
+    environment:
+      AMQP_HOST: rabbitmq
+      ES_HOST: elasticsearch
+    networks:
+      - shared_net
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+    command: ["./wait-for-it.sh", "-t", "30", "elasticsearch:9200", "--", "./wait-for-it.sh", "-t", "15", "rabbitmq:15672", "--","python", "ensembl/production/reporting/amqp_reporter.py"]
+
+networks:
+  shared_net:
+    driver: bridge
