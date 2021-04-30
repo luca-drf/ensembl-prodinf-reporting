@@ -137,6 +137,7 @@ def smtp_reporter():
 
 def stop_gracefully():
     hub.close()
+    conn.release()
     hub.stop()
 
 
@@ -150,10 +151,6 @@ def sigterm_handler(_signum, _frame):
     stop_gracefully()
 
 
-def release_connection(_hub):
-    conn.release()
-
-
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
@@ -163,7 +160,6 @@ def main():
         logger.critical("Cannot connect to %s", AMQP_URI)
         logger.critical("Exiting.")
         sys.exit(1)
-    hub.on_close.add(release_connection)
 
     logger.info("Configuration: %s", config)
     if config.reporter_type == "elasticsearch":
