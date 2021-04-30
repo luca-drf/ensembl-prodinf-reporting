@@ -17,7 +17,7 @@ setup(
     long_description=readme,
     packages=find_namespace_packages(include=['ensembl.*']),
     license='Apache 2.0',
-    package_data={'': ['LICENSE', 'NOTICE']},
+    include_package_data=True,
     zip_safe=False,
     install_requires=[
         'elasticsearch',
