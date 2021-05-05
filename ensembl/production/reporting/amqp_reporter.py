@@ -128,7 +128,7 @@ def smtp_reporter():
             message.requeue()
             logger.warning("Requeued: %s", message.body)
             return
-        logger.debug("Email sent: %s", email)
+        logger.info("Email sent: %s", email)
         message.ack()
         logger.debug("Acked: %s", message.body)
 
