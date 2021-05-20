@@ -94,9 +94,23 @@ build:
     - sed -i "s#<CI_ENVIRONMENT_SLUG>#${CI_ENVIRONMENT_SLUG}#g" k8s-manifests/amqp-reporting/deployment-es.yaml
     - sed -i "s#<CI_ENVIRONMENT_SLUG>#${CI_ENVIRONMENT_SLUG}#g" k8s-manifests/amqp-reporting/deployment-smtp.yaml
     - kubectl apply -f k8s-manifests/amqp-reporting/deployment-es.yaml
-    - kubectl annotate deployment amqp-es-reporter kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-bacteria kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-microbes kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-plants kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-production kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-rapid kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-vert kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-viruses kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
     - kubectl apply -f k8s-manifests/amqp-reporting/deployment-smtp.yaml
-    - kubectl annotate deployment amqp-smtp-reporter kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-bacteria kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-microbes kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-plants kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-production kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-rapid kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-vert kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-smtp-reporter-viruses kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
 
 
 deploy_prod:
