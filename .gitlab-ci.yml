@@ -137,4 +137,5 @@ deploy_dev:
 
   before_script:
     - git clone https://oauth2:${GITLAB_ACCESS_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
+    - cd k8s-manifests
     - git checkout dev
