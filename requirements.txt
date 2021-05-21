@@ -6,9 +6,7 @@
 #
 amqp==5.0.6
     # via kombu
-certifi==2020.12.5
-    # via elasticsearch
-elasticsearch==7.12.1
+elasticsearch==6.8.1
     # via -r requirements.in
 kombu==5.0.2
     # via -r requirements.in

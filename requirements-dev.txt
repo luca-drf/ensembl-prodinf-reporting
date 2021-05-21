@@ -24,15 +24,13 @@ backcall==0.2.0
     # via ipython
 black==21.4b2
     # via -r requirements-dev.in
-certifi==2020.12.5
-    # via elasticsearch
 click==7.1.2
     # via black
 coverage==5.5
     # via -r requirements-test.in
 decorator==5.0.7
     # via ipython
-elasticsearch==7.12.1
+elasticsearch==6.8.1
     # via -r requirements.in
 iniconfig==1.1.1
     # via pytest
