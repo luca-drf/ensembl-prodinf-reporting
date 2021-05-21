@@ -172,6 +172,7 @@ def main():
             [queue],
             prefetch_count=config.amqp_prefetch,
             on_message=on_message_report,
+            auto_declare=False
         ):
             logger.info("Starting main loop")
             hub.run_forever()
