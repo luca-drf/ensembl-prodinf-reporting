@@ -20,9 +20,9 @@ test:
   image: python:3.8.9-slim
 
   services:
-    - name: rabbitmq:3-management
+    - name: rabbitmq:3.8.0-management
       alias: rabbitmq-test
-    - name: elasticsearch:7.12.0
+    - name: elasticsearch:6.2.4
       alias: elasticsearch-test
       command: ["bin/elasticsearch", "-Ediscovery.type=single-node"]
 
