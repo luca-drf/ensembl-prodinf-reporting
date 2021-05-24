@@ -67,8 +67,8 @@ def es_reporter():
             )
         except ElasticsearchException as err:
             logger.error("Cannot modify index %s. Error: %s", config.es_index, err)
-            message.requeue()
-            logger.warning("Requeued: %s", message.body)
+            message.reject()
+            logger.warning("Rejected: %s", message.body)
             return
         logger.debug(
             "To index: %s, type: %s, document: %s",
@@ -125,8 +125,8 @@ def smtp_reporter():
                 smtp.send_message(msg)
         except SMTPException as err:
             logger.error("Cannot send email message: %s Message: %s", err, email)
-            message.requeue()
-            logger.warning("Requeued: %s", message.body)
+            message.reject()
+            logger.warning("Rejected: %s", message.body)
             return
         logger.info("Email sent: %s", email)
         message.ack()
