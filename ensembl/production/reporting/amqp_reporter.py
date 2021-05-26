@@ -82,7 +82,10 @@ def es_reporter():
     try:
         yield on_message
     finally:
-        es.close()
+        try:
+            es.close()
+        except AttributeError:
+            pass
 
 
 def compose_email(email: dict) -> EmailMessage:
