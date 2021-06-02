@@ -6,8 +6,6 @@
 #
 aiosmtpd==1.4.2
     # via -r requirements-test.in
-amqp==5.0.6
-    # via kombu
 atpublic==2.3
     # via aiosmtpd
 attrs==20.3.0
@@ -16,12 +14,8 @@ attrs==20.3.0
     #   pytest
 coverage==5.5
     # via -r requirements-test.in
-elasticsearch==6.8.1
-    # via -r requirements.in
 iniconfig==1.1.1
     # via pytest
-kombu==5.0.2
-    # via -r requirements.in
 packaging==20.9
     # via pytest
 pluggy==0.13.1
@@ -34,9 +28,5 @@ pytest==6.2.3
     # via -r requirements-test.in
 toml==0.10.2
     # via pytest
-urllib3==1.26.4
-    # via
-    #   -r requirements-test.in
-    #   elasticsearch
-vine==5.0.0
-    # via amqp
+urllib3==1.26.5
+    # via -r requirements-test.in
