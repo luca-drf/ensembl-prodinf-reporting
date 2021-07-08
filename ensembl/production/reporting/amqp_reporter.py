@@ -7,7 +7,7 @@ from smtplib import SMTP, SMTPException
 import sys
 from typing import Any
 
-from kombu import Connection, Queue, Producer, Consumer, Message
+from kombu import Connection, Queue, Consumer, Message
 from kombu.asynchronous import Hub
 from elasticsearch import Elasticsearch, ElasticsearchException
 
