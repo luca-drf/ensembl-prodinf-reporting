@@ -160,7 +160,7 @@ def main():
     try:
         conn.register_with_event_loop(hub)
     except ConnectionRefusedError as err:
-        logger.critical("Cannot connect to %s", AMQP_URI)
+        logger.critical("Cannot connect to %s: %s", AMQP_URI, err)
         logger.critical("Exiting.")
         sys.exit(1)
 
