@@ -6,12 +6,12 @@
 #
 amqp==5.0.6
     # via kombu
-elasticsearch==6.8.1
+elasticsearch6==6.8.1
     # via -r requirements.in
-kombu==5.1.0
+kombu==5.2.2
     # via -r requirements.in
-urllib3==1.26.6
-    # via elasticsearch
+urllib3==1.26.7
+    # via elasticsearch6
 vine==5.0.0
     # via
     #   amqp
