@@ -96,14 +96,10 @@ build:
     - kubectl apply -f k8s-manifests/amqp-reporting/deployment-es.yaml
     - kubectl annotate deployment amqp-es-reporter-root kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
     - kubectl annotate deployment amqp-es-reporter-rapid kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-enseven-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-enseven-microbes kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-enseven-plants kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-enseven-vert kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-ensodd-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-ensodd-microbes kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-ensodd-plants kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
-    - kubectl annotate deployment amqp-es-reporter-ensodd-vert kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-microbes kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-plants kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
+    - kubectl annotate deployment amqp-es-reporter-vert kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
     # - kubectl apply -f k8s-manifests/amqp-reporting/deployment-smtp.yaml
     # - kubectl annotate deployment amqp-smtp-reporter-root kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
     # - kubectl annotate deployment amqp-smtp-reporter-metazoa kubernetes.io/change-cause="Update to ${CI_COMMIT_TAG}"
