@@ -92,7 +92,7 @@ def compose_email(email: dict) -> EmailMessage:
     msg = EmailMessage()
     try:
         msg["Subject"] = email["subject"]
-        msg["From"] = email["from"]
+        msg["From"] = config.smtp_user
         msg["To"] = email["to"]  # This can be a list of str
         msg.set_content(email["content"])
     except KeyError as err:
@@ -125,8 +125,10 @@ def smtp_reporter():
             return
         try:
             with SMTP(host=config.smtp_host, port=config.smtp_port) as smtp:
+                smtp.starttls()
+                smtp.login(config.smtp_user, config.smtp_pass)
                 smtp.send_message(msg)
-        except SMTPException as err:
+        except (ConnectionRefusedError, SMTPException) as err:
             logger.error("Cannot send email message: %s Message: %s", err, email)
             message.reject()
             logger.warning("Rejected: %s", message.body)

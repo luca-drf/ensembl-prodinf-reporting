@@ -42,7 +42,6 @@ message on the queue must have the following structure:
 ```
 {
   "subject": "My Subject",
-  "from": "the.sender@email.org",
   "to": ["receiver1@email.org", "receiver2@email.org"],
   "content": "Hello!"
 }

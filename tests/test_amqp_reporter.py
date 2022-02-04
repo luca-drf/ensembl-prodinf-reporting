@@ -1,15 +1,16 @@
-import asyncio
 from email.parser import BytesParser as EmailParser
 from email.policy import default as default_policy
-import logging
 from threading import Thread
 import os
+from pathlib import Path
 from queue import Queue, Empty
 from subprocess import Popen, PIPE
+import ssl
 from typing import BinaryIO, NamedTuple, List, Tuple
 
 from aiosmtpd.controller import Controller as SMTPController
-from elasticsearch import Elasticsearch
+from aiosmtpd import smtp
+from elasticsearch6 import Elasticsearch
 import kombu
 import urllib3
 
@@ -25,6 +26,7 @@ SMTP_TEST_SERVER_PORT = 10025
 
 AMQP_MANAGEMENT_PORT = 15672
 
+THIS_DIR = Path(__file__).resolve().parent
 
 class HostPort(NamedTuple):
     host: str
@@ -60,7 +62,6 @@ def wait_for(url: str, retries: int = 8, backoff: float = 0.2):
 def valid_email_message():
     message = {
         "subject": "Test Email",
-        "from": "sender@email.org",
         "to": ["receiver1@email.org", "receiver2@email.org"],
         "content": "Hello!",
     }
@@ -103,6 +104,8 @@ def elastic_search():
 @pytest.fixture
 def smtp_messages():
     message_q: Queue = Queue()
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.load_cert_chain(THIS_DIR/"test_cert.pem", THIS_DIR/"test_key.pem")
 
     class SMTPHandler:
         async def handle_DATA(self, _server, session, envelope):
@@ -114,8 +117,23 @@ def smtp_messages():
             message_q.put(msg)
             return "250 OK"
 
+    def smtp_authenticator(_server, _session, _envelope, mechanism, auth_data):
+        auth_failed = smtp.AuthResult(success=False, handled=False)
+        if mechanism != "LOGIN":
+            return auth_failed
+        username = auth_data.login.decode("utf-8")
+        password = auth_data.password.decode("utf-8")
+        if username != config.smtp_user or password != config.smtp_pass:
+            return auth_failed
+        return smtp.AuthResult(success=True)
+
     controller = SMTPController(
-        SMTPHandler(), hostname=SMTP_TEST_SERVER_HOST, port=SMTP_TEST_SERVER_PORT
+        SMTPHandler(),
+        hostname=SMTP_TEST_SERVER_HOST,
+        port=SMTP_TEST_SERVER_PORT,
+        auth_required=True,
+        authenticator=smtp_authenticator,
+        tls_context=ssl_context
     )
     controller.start()
     try:
@@ -189,7 +207,7 @@ def test_validate_payload_raise(invalid_message):
 def test_compose_email_ok(valid_email_message):
     message = compose_email(valid_email_message)
     assert message["Subject"] == valid_email_message["subject"]
-    assert message["From"] == valid_email_message["from"]
+    assert message["From"] == config.smtp_user
     assert message["To"] == ", ".join(valid_email_message["to"])
     assert message.get_content().strip() == valid_email_message["content"]
 
@@ -199,7 +217,6 @@ def test_compose_email_ok(valid_email_message):
     [
         {},
         {
-            "from": "me@me.com",
             "to": ["you@org.com"],
             "subject": "This email is missing content",
         },
@@ -271,11 +288,13 @@ def test_consume_and_sendmail_success(
         received_email = EmailParser(policy=default_policy).parsebytes(
             received_smtp.message
         )
-        assert received_smtp.sender == message["from"]
-        assert received_email["from"] == message["from"]
+        assert received_smtp.sender == config.smtp_user
+        assert received_email["from"] == config.smtp_user
         assert received_smtp.receivers == message["to"]
         assert received_email["to"] == ", ".join(message["to"])
         assert received_smtp.remote_host[0] == SMTP_TEST_SERVER_HOST
         assert received_email["subject"] == message["subject"]
         assert received_email.get_content().strip() == message["content"]
         break
+    else:
+        assert False, "No messages received"
