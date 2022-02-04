@@ -9,7 +9,7 @@ from typing import Any
 
 from kombu import Connection, Queue, Consumer, Message
 from kombu.asynchronous import Hub
-from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch6 import Elasticsearch, ElasticsearchException
 
 from ensembl.production.reporting.config import config
 

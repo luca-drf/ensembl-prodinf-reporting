@@ -20,7 +20,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'elasticsearch',
+        'elasticsearch6',
         'kombu',
     ],
     python_requires='>=3.7, <4',

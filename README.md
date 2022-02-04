@@ -17,7 +17,7 @@ either store them in a Elasticsearch instance or sent via email.
 ### System Requirements
 
 - Python 3.8+
-- Elasticsearch 7.12
+- Elasticsearch 6
 - RabbitMQ 3
 
 
@@ -68,7 +68,7 @@ to `.travis.yml` for more insight on tests configuration.
 In order to run tests manually, run the following commands:
 ```
 pip install -r requirements-test.txt
-pip install .
+pip install -e .
 docker-compose -f tests/docker-compose.yml up -d
 pytest tests
 ```
