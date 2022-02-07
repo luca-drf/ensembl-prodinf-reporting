@@ -125,7 +125,7 @@ def smtp_reporter():
             return
         try:
             with SMTP(host=config.smtp_host, port=config.smtp_port) as smtp:
-                smtp.starttls()
+                smtp.starttls()  #TODO: We should check server's certificate here.
                 smtp.login(config.smtp_user, config.smtp_pass)
                 smtp.send_message(msg)
         except (ConnectionRefusedError, SMTPException) as err:
