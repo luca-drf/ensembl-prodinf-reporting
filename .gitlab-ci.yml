@@ -83,10 +83,10 @@ build:
   variables:
     CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
 
-  image: ${TOOLS_IMAGE}:${TOOLS_TAG}
+  image: ${CI_TOOLS_IMAGE}:latest
 
   before_script:
-    - git clone https://oauth2:${GITLAB_ACCESS_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
+    - git clone https://${GITLAB_USERNAME}:${GITLAB_RO_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
 
   script:
     - sed -i "s#<DOCKER_IMAGE>#${CONTAINER_IMAGE}#g" k8s-manifests/amqp-reporting/deployment-es.yaml
@@ -133,7 +133,7 @@ deploy_prod:
 #     name: dev
 
 #   before_script:
-#     - git clone https://oauth2:${GITLAB_ACCESS_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
+#     - git clone https://${GITLAB_USERNAME}:${GITLAB_RO_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
 #     - cd k8s-manifests
 #     - git checkout dev
 #     - cd ..
@@ -149,7 +149,7 @@ deploy_staging:
     name: staging
 
   before_script:
-    - git clone https://oauth2:${GITLAB_ACCESS_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
+    - git clone https://${GITLAB_USERNAME}:${GITLAB_RO_TOKEN}@${GITLAB_HOST}/${MANIFESTS_NAMESPACE}/k8s-manifests.git
     - cd k8s-manifests
     - git checkout staging
     - cd ..
