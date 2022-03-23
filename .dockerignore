@@ -1,0 +1,52 @@
+.cache
+*,cover
+*.log
+.git
+.env
+
+# macOS
+.DS_Store
+
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+Sessionx.vim
+
+# Temporary
+.netrwhist
+*~
+
+# Auto-generated tag files
+.tags
+
+# Python
+__pycache__/
+*.egg-info/
+*.py[cod]
+dist/
+build/
+sdist/
+*.egg-info/
+wheels/
+
+# Coverage
+.coverage
+.coverage.*
+
+# Pyenv
+.python-version
+
+# Pylint
+.?pylintrc
+
+# Mypy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
